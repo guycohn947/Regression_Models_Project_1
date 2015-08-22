@@ -1,0 +1,65 @@
+---
+title: John Hopkins University -- Data Science Specialization -- Regression Models
+  Course -- Appendix to Solution of Project 1
+author: "Dr. Guy Cohen"
+date: "August 19, 2015"
+output: pdf_document
+---
+
+# Effect of Transmission Type on Fuel Economy in 1973-74 Cars
+
+## Appendix
+
+### Exploratory Data Analysis
+
+We first convert the factor variables to factor type.
+```{r,fig.width=20,fig.height=20}
+data(mtcars)
+mtcars2 <- mtcars
+mtcars2[,c("cyl","vs","am","gear","carb")] <-
+    as.data.frame(lapply(mtcars2[,c("cyl","vs","am","gear","carb")],as.factor))
+```
+
+Second, we plot boxplots of continuous variables and barplots for categorical ones.  
+
+```{r,fig.height=4,echo=FALSE}
+par(mfrow=c(2,6),mar=c(4,4,2,1))
+boxplot(mtcars2$mpg, ylab = "Miles/(US) gallon", xlab ="", main = "Fig. 1")
+barplot(table(mtcars2$cyl), ylab = "Count", xlab = "Cylinder Num.", main = "Fig. 2")
+boxplot(mtcars2$disp, ylab = "Displacement (cu.in.)", xlab ="", main = "Fig. 3")
+boxplot(mtcars2$hp, ylab = "Gross Horsepower (hp)", xlab ="", main = "Fig. 4")
+boxplot(mtcars2$drat, ylab = "Rear Axle Ratio", xlab ="", main = "Fig. 5")
+boxplot(mtcars2$wt, ylab = "Weight (1000 lb)", xlab ="", main = "Fig. 6")
+boxplot(mtcars2$qsec, ylab = "Quarter Mile Time (s)", xlab ="", main = "Fig. 7")
+barplot(table(mtcars2$vs), ylab = "Count", xlab = "V/S", main = "Fig. 8")
+barplot(table(mtcars2$am), ylab = "Count", xlab = "Transmission", main = "Fig. 9")
+barplot(table(mtcars2$gear), ylab = "Count", xlab = "Fwd Gears", main = "Fig. 10")
+barplot(table(mtcars2$carb), ylab = "Count", xlab = "Carburetors", main = "Fig. 11")
+```
+
+We plot a pairs plot to see how the variables relate to each other.
+```{r, fig.width=20, fig.height=20, cache=TRUE}
+library(ggplot2)
+library(GGally)
+ggpairs(mtcars2, lower = list(continuous = "smooth"), params = c(method = "loess"), title= "Fig. 12")
+```
+
+### Detailed Solution
+
+We plot the adjusted R-squared for models of various number of predictors found using forward selection.
+```{r, fig.height=2.5}
+library(leaps)
+library(ggplot2)
+regfit.fwd=regsubsets(mpg ~ ., data = mtcars2, nvmax = 12, method="forward")
+qplot(x,y,data = data.frame(x=1:12,y=summary(regfit.fwd)$adjr2), 
+      geom = c("point","smooth"), xlab = "Number of Predictors", 
+      ylab = "Adjusted R-Squared", main = "Fig. 13")
+```
+
+We fit a linear model using the parameters found and plot the residual plot.
+```{r}
+fit <- lm(mpg ~ I(cyl == "6") + hp + wt + I(am == "1"), data = mtcars2)
+par(mfrow = c(2,2))
+plot(fit)
+```
+
